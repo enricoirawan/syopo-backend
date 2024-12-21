@@ -6,12 +6,13 @@ use App\Models\User;
 use App\ResponseFormatter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class ForgotPasswordController extends Controller
 {
     public function request()
     {
-        $validator = \Validator::make(request()->all(), [
+        $validator = Validator::make(request()->all(), [
             "email" => "required|email|exists:users,email",
         ]);
 
@@ -19,14 +20,14 @@ class ForgotPasswordController extends Controller
             return ResponseFormatter::error(400, $validator->errors());
         }
 
-        $check = \DB::table('password_reset_tokens')->where('email', request()->email)->count();
+        $check = DB::table('password_reset_tokens')->where('email', request()->email)->count();
         if ($check > 0) {
             return ResponseFormatter::error(400, null, ["Anda sudah melukan request, silahkan resend OTP!"]);
         }
 
         do {
             $otp = rand(1000000, 9999999);
-            $otpCount = \DB::table('password_reset_tokens')->where('token', $otp)->count();
+            $otpCount = DB::table('password_reset_tokens')->where('token', $otp)->count();
         } while ($otpCount > 0);
 
         DB::table('password_reset_tokens')->insert([
@@ -44,7 +45,7 @@ class ForgotPasswordController extends Controller
 
     public function resendOtp()
     {
-        $validator = \Validator::make(request()->all(), [
+        $validator = Validator::make(request()->all(), [
             "email" => "required|exists:users,email",
         ]);
 
@@ -78,7 +79,7 @@ class ForgotPasswordController extends Controller
 
     public function verifyOtp()
     {
-        $validator = \Validator::make(request()->all(), [
+        $validator = Validator::make(request()->all(), [
             "email" => "required|exists:users,email",
             "otp" => "required|exists:password_reset_tokens,token",
         ]);
@@ -99,7 +100,7 @@ class ForgotPasswordController extends Controller
 
     public function resetPassword()
     {
-        $validator = \Validator::make(request()->all(), [
+        $validator = Validator::make(request()->all(), [
             "email" => "required|exists:users,email",
             "otp" => "required|exists:password_reset_tokens,token",
             "password" => "required|min:6|confirmed",
