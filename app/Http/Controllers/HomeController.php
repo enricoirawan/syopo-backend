@@ -17,7 +17,6 @@ class HomeController extends Controller
     public function getCategory()
     {
         $categories = Category::whereNull('parent_id')->with(['childs'])->get();
-
         return ResponseFormatter::success($categories->pluck('api_response'));
     }
 }
